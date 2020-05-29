@@ -1,0 +1,46 @@
+# This is a minimal Bochs configuration file for running Floppix.
+# For more options and their description, consult the Bochs documentation.
+# http://bochs.sourceforge.net/doc/docbook/user/bochsrc.html
+
+
+# The patch which enables automating Floppix only works when 'x' is used.
+display_library: x
+
+
+# Set ROM images.
+romimage: file=$BXSHARE/BIOS-bochs-latest, options=fastboot
+vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
+
+
+# When 'clock' is commented out, Bochs will run much faster. There are two
+# drawbacks with this:
+#
+#  * The Floppix login normally timesout after 60 seconds, but when
+#    Bochs is run in 'accelerated' mode, the timeout is extremely
+#    short. Depending on the speed of your machine, you may have
+#    two seconds (or less) to type your password.
+#
+#  * A CPU core runs at 100%, even when Floppix is idle, which
+#    may cause unwanted heating.
+clock: sync=slowdown
+
+
+# Start with Floppix disk1.img in Drive A.
+floppya: 1_44=./floppix/disk1.img, status=inserted
+
+
+# Boot from floppy
+boot: floppy
+
+
+# Disable the 0xaa55 signature check on boot floppies.
+floppy_bootsig_check: disabled=0
+
+
+# Log file.
+log: bochsout.txt
+
+
+# Amount of memory in megabytes.
+# Floppix needs about 15 MiB and can use a max of about 880 MiB. 
+# megs: 64

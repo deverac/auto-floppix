@@ -1,0 +1,153 @@
+diff -Naur bochs-2.6.11/doc/docbook/user/user.dbk mod/doc/docbook/user/user.dbk
+--- bochs-2.6.11/doc/docbook/user/user.dbk	2019-12-29 02:20:50.246180000 -0500
++++ mod/doc/docbook/user/user.dbk	2020-05-29 00:59:11.582268089 -0400
+@@ -5588,6 +5588,45 @@
+ </itemizedlist>
+ </para>
+ <para>
++When using 'x' as the <command>display_library</command>, pressing the F7 key
++will enter 'command-mode' and highlight the "F7=CMD" element in the statusbar;
++the next key that is pressed will exit command-mode. When in command-mode,
++if the pressed key is in the list below, the corresponding action will be
++performed. With the exception of F7, any key pressed while in command-mode
++will not be received by the program running in Bochs.
++</para>
++<para>
++<itemizedlist>
++<listitem>
++<para>z - Press the User button</para>
++</listitem>
++<listitem>
++<para>c - Press the Copy button</para>
++</listitem>
++<listitem>
++<para>p - Press the Paste button</para>
++</listitem>
++<listitem>
++<para>s - Press the Snapshot button</para>
++</listitem>
++<listitem>
++<para>f - Press the Config button</para>
++</listitem>
++<listitem>
++<para>e - Press the Reset button</para>
++</listitem>
++<listitem>
++<para>u - Press the Suspend button</para>
++</listitem>
++<listitem>
++<para>w - Press the Power button</para>
++</listitem>
++<listitem>
++<para>F7 - Send an F7 keypress to the program running in Bochs</para>
++</listitem>
++</itemizedlist>
++</para>
++<para>
+ Some of this features may not be implemented or work different on your host platform.
+ </para>
+ </section>
+diff -Naur bochs-2.6.11/gui/gui.cc mod/gui/gui.cc
+--- bochs-2.6.11/gui/gui.cc	2019-11-24 13:13:12.955996000 -0500
++++ mod/gui/gui.cc	2020-05-29 00:59:36.182267060 -0400
+@@ -145,6 +145,7 @@
+   guest_bpp = 8;
+   snapshot_mode = 0;
+   snapshot_buffer = NULL;
++  command_mode = 0;
+   memset(palette, 0, sizeof(palette));
+ }
+ 
+@@ -287,6 +288,8 @@
+                           BX_GRAVITY_RIGHT, userbutton_handler);
+   BX_GUI_THIS set_tooltip(BX_GUI_THIS user_hbar_id, "Send keyboard shortcut");
+ 
++  BX_GUI_THIS statusbar_id = bx_gui->register_statusitem("F7=CMD");
++
+   if (!parse_user_shortcut(SIM->get_param_string(BXPN_USER_SHORTCUT)->getptr())) {
+     SIM->get_param_string(BXPN_USER_SHORTCUT)->set("none");
+   }
+@@ -965,6 +968,11 @@
+ }
+ #endif
+ 
++void bx_gui_c::set_statusbar_cmd(int state)
++{
++  bx_gui->statusbar_setitem(BX_GUI_THIS statusbar_id, state);
++}
++
+ // new graphics API (compatibility code)
+ 
+ bx_svga_tileinfo_t *bx_gui_c::graphics_tile_info(bx_svga_tileinfo_t *info)
+diff -Naur bochs-2.6.11/gui/gui.h mod/gui/gui.h
+--- bochs-2.6.11/gui/gui.h	2019-12-26 11:14:31.874392000 -0500
++++ mod/gui/gui.h	2020-05-29 00:59:51.510266419 -0400
+@@ -118,6 +118,7 @@
+   virtual int set_clipboard_text(char *snapshot, Bit32u len) = 0;
+   virtual void mouse_enabled_changed_specific (bx_bool val) = 0;
+   virtual void exit(void) = 0;
++  virtual void set_statusbar_cmd(int state);
+   // new graphics API methods (compatibility mode in gui.cc)
+   virtual bx_svga_tileinfo_t *graphics_tile_info(bx_svga_tileinfo_t *info);
+   virtual Bit8u *graphics_tile_get(unsigned x, unsigned y, unsigned *w, unsigned *h);
+@@ -239,6 +240,8 @@
+   unsigned mouse_bmap_id, nomouse_bmap_id, mouse_hbar_id;
+   unsigned user_bmap_id, user_hbar_id;
+   unsigned save_restore_bmap_id, save_restore_hbar_id;
++  unsigned statusbar_id;
++  unsigned command_mode;
+   // the "classic" Bochs headerbar
+   unsigned bx_headerbar_entries;
+   struct {
+diff -Naur bochs-2.6.11/gui/x.cc mod/gui/x.cc
+--- bochs-2.6.11/gui/x.cc	2019-04-21 16:08:32.542513000 -0400
++++ mod/gui/x.cc	2020-05-29 01:00:06.290265801 -0400
+@@ -55,6 +55,8 @@
+ 
+ #include "font/vga.bitmap.h"
+ 
++#define COMMAND_MODE_KEYSYM XK_F7
++
+ class bx_x_gui_c : public bx_gui_c {
+ public:
+   bx_x_gui_c(void);
+@@ -1952,6 +1954,39 @@
+     return;
+   }
+ 
++  if (!press_release) {
++    if (command_mode) {
++      if (keysym == XK_c) {
++        bx_gui->copy_handler();
++      } else if (keysym == XK_e) {
++        bx_gui->reset_handler();
++      } else if (keysym == XK_f) {
++        bx_gui->config_handler();
++      } else if (keysym == XK_p) {
++        bx_gui->paste_handler();
++      } else if (keysym == XK_s) {
++        bx_gui->snapshot_handler();
++      } else if (keysym == XK_u) {
++        bx_gui->save_restore_handler();
++      } else if (keysym == XK_w) {
++        bx_gui->power_handler();
++      } else if (keysym == XK_z) {
++        bx_gui->userbutton_handler();
++      }
++      command_mode = 0;
++      bx_gui->set_statusbar_cmd(command_mode);
++      if (keysym != COMMAND_MODE_KEYSYM) {
++        return;
++      }
++    } else {
++      if (keysym == COMMAND_MODE_KEYSYM) {
++        command_mode = 1;
++        bx_gui->set_statusbar_cmd(command_mode);
++        return;
++      }
++    }
++  }
++
+   /* Old (no mapping) behavior */
+   if (!x11_use_kbd_mapping) {
+ 
