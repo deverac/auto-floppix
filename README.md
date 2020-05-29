@@ -11,8 +11,8 @@ window should have focus and you should avoid using other programs while
 Script | Action
 -------|----
 `apply-patch.sh` | Extract [`bochs-2.6.11.tar.gz`](https://sourceforge.net/projects/bochs/files/bochs/2.6.11/bochs-2.6.11.tar.gz/download), apply the `command-mode.patch` patch file, configure, and build [Bochs](http://bochs.sourceforge.net/). Additional software and/or libraries may need to be installed for the build to succeed.
-`run-floppix.sh` | Decompress `floppix.tar.gz`, and wait a moment for Bochs to start.
-`run-bochs.sh` | Start Boch using `boschrc.txt` as its configuration file.
+`run-floppix.sh` | Decompress `floppix.tar.gz`, and wait a moment for Bochs to start. `xdotool` must be installed.
+`run-bochs.sh` | Start Bochs using `bochsrc.txt` as its configuration file.
 
 In a terminal window, execute `./apply-patch.sh` and then execute
 `./run-floppix.sh`. In a separate terminal window, execute `./run-bochs.sh`;
