@@ -66,6 +66,37 @@ will not be received by the program running in Bochs.
  _w_  | Press the Power button
  _F7_ | Send an F7 keypress to the program running in Bochs
 
+
+### Remaster
+
+[`./remaster/floppix-fd.img`](./remaster/floppix-fd.img) was created by
+`./remaster/remaster.sh`. `floppix-fd.img` is the two-disk Floppix distribution
+that has been 'remastered' to fit on a single 2.88 Mb floppy image. It is
+suitable for running in a Virtual Machine (and should also work fine if
+written to a real 2.88 Mb floppy disk.) To run it in a VM, 'insert' the
+`floppix-fd.img` file into the VM's floppy drive and boot the VM from the
+floppy. The Floppix configuration file can be read and updated as needed.
+
+
+[`./remaster/floppix-usb.img.gz`](./remaster/floppix-usb.img.gz) was created by
+external tools and contains `floppix-usb.img`, which is a specially prepared
+version of `floppix-fd.img` that allows Floppix to run on real hardware (rather
+than running in a VM). To run Floppix on real hardware, write `floppix-usb.img`
+to a USB stick, configure the machine to boot from a USB drive, then reboot the
+machine. Unfortunately, the Floppix configuration file can not be saved when
+Floppix is run in this manner.
+
+    # To run Floppix on real hardware (rather than a VM):
+
+    gunzip floppix-usb.img.gz            # Uncompress image
+
+    dd if=floppix-usb.img of=/dev/xxx    # Write to USB stick. Replace /dev/xxx
+                                         # with the device for the USB stick.
+
+    # Configure BIOS to boot from USB device in non-UEFI mode (a.k.a. 'Legacy' mode).
+    # Reboot machine.
+
+
 ### Misc
 
 By setting the `clock` value in `bochsrc.txt`, Bochs can be run at 'normal
