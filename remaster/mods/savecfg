@@ -1,0 +1,15 @@
+#! /bin/sh
+echo "---------------------------------------------------------------------"
+echo -n "Save configuration on floppix boot disk? (y/n) "
+read -e gotit
+if [ ${gotit} ] && echo $gotit | grep -iq y
+then
+   if (mount -t vfat /dev/fd0u2880 /mnt); then
+       cp /etc/floppix.cfg.new /mnt/floppix.cfg
+       sync
+       umount /mnt
+   else
+      echo "Error: Failed to save configuration; press [enter] to continue"
+      read
+   fi
+fi

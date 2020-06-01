@@ -1,0 +1,38 @@
+#! /bin/sh
+
+# create /usr
+mke2fs -m 0 /dev/ram1 2800
+mount -t ext2 /dev/ram1 /usr
+echo "---------------------------------------------------------------------"
+echo "creating /usr - please wait (and wait and wait)"
+cd /usr
+for i in man bin doc lib sbin
+do
+   if test -f /u$i.tgz
+   then
+      echo unpacking /usr/$i
+      mkdir /usr/$i
+      cd /usr/$i   
+      tar -xzf  /u$i.tgz
+      rm /u$i.tgz
+   fi
+done
+
+cd /tmp
+cp -dpR * /usr
+rm -rf *
+
+#get configuration file
+if (mount -t vfat /dev/fd0u2880 /mnt) 2> /dev/null; then
+    [ -f /mnt/floppix.cfg ] && cp /mnt/floppix.cfg /etc
+    umount /mnt
+fi
+
+#get nic modules
+cp /net/* /lib/modules/2.0.38/net
+gunzip /lib/modules/2.0.38/net/* &> /dev/null
+
+rm -r /net
+
+echo "---------------------------------------------------------------------"
+echo "/usr created."

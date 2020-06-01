@@ -21,12 +21,14 @@ vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
 #    two seconds (or less) to type your password.
 #
 #  * A CPU core runs at 100%, even when Floppix is idle, which
-#    may cause unwanted heating.
+#    may cause unwanted heating. (When using 100% CPU, clicking
+#    on Suspend on the headerbar will pause the CPU and Bochs.)
 clock: sync=slowdown
 
 
 # Start with Floppix disk1.img in Drive A.
 floppya: 1_44=./floppix/disk1.img, status=inserted
+#floppya: 2_88=./remaster/floppix-fd.img, status=inserted
 
 
 # Boot from floppy
